@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DynaConTalk generates long-form and controllable holistic co-speech 3D motion with wavelet-constrained diffusion.">
+  <meta property="og:title" content="DynaConTalk">
+  <meta property="og:description" content="Wavelet-Constrained Diffusion for Long-Form and Controllable Holistic Co-Speech 3D Motion">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://zhuyifeiabcd1.github.io/DynaConTalk/">
+  <meta property="og:image" content="https://zhuyifeiabcd1.github.io/DynaConTalk/static/images/dynacontalk/overview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>DynaConTalk</title>
+  <script>document.documentElement.classList.add("js");</script>
+  <link rel="icon" type="image/png" href="./static/images/dynacontalk/overview.png">
+  <link rel="canonical" href="https://zhuyifeiabcd1.github.io/DynaConTalk/">
+  <link rel="preload" as="image" href="./static/images/dynacontalk/hero-background-poster-v4.jpg">
+  <link rel="preload" as="image" href="./static/images/dynacontalk/fig1-architecture.webp" type="image/webp" fetchpriority="high">
+  <link rel="stylesheet" href="./static/css/index.css?v=examples-v1">
+</head>
+<body>
+  <header class="paper-hero" id="top">
+    <div class="hero-media" aria-hidden="true">
+      <video id="hero-background" autoplay muted loop playsinline preload="auto" poster="./static/images/dynacontalk/hero-background-poster-v4.jpg">
+        <source src="./static/video/dynacontalk/hero-background-v4.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="hero-overlay" aria-hidden="true"></div>
+
+    <div class="hero-foreground">
+      <nav class="topbar" aria-label="Primary navigation">
+        <a class="brand" href="#top">DynaConTalk</a>
+        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"><span></span><span></span><span></span></button>
+        <div class="navlinks">
+          <a href="#abstract">Abstract</a>
+          <a href="#method">Method</a>
+          <a href="#controls">Controls</a>
+          <a href="#examples">Examples</a>
+        </div>
+      </nav>
+
+      <section class="hero-title" aria-labelledby="page-title">
+        <p class="venue">Project Page · 2026</p>
+        <h1 id="page-title">DynaConTalk</h1>
+        <p class="subtitle">Wavelet-Constrained Diffusion for Long-Form and<br class="desktop-only"> Controllable Holistic Co-Speech 3D Motion</p>
+
+        <div class="hero-pillars" aria-label="Core method components">
+          <span>Wavelet Motion Space</span>
+          <span>Dynamic Condition Negotiation</span>
+          <span>Matched-Noise Constraints</span>
+        </div>
+
+        <!-- Add the final author and affiliation block here after de-anonymization. -->
+        <div class="actions" aria-label="Project links">
+          <span class="button disabled" aria-disabled="true">Paper</span>
+          <a class="button" href="#examples">Examples</a>
+          <span class="button disabled" aria-disabled="true">Code</span>
+        </div>
+      </section>
+    </div>
+  </header>
+
+  <main>
+    <section id="abstract" class="section abstract-section">
+      <div class="abstract-card">
+        <p class="section-kicker">Abstract</p>
+        <p>Holistic co-speech animation must coordinate body, hands, face, and root motion over long sequences while remaining editable. <strong>DynaConTalk</strong> performs diffusion in stationary wavelet transform (SWT) coefficient space, separating coarse posture evolution, gesture strokes, and fast expressive details into aligned frequency bands.</p>
+        <p>Matched-noise constraint injection re-noises clean history or sparse user constraints to the current diffusion level before injection. This turns long-window continuation and localized editing into in-distribution denoising rather than post-hoc stitching, while dynamic multimodal conditioning negotiates rhythm, acoustic, semantic, text, identity, and activity cues over time.</p>
+      </div>
+    </section>
+
+    <section id="method" class="section method-section">
+      <div class="section-heading">
+        <p class="section-kicker">Method</p>
+        <h2>Structure first</h2>
+        <p>DynaConTalk combines an aligned frequency representation, frame-wise multimodal conditioning, and diffusion-compatible history and editing constraints.</p>
+      </div>
+
+      <figure class="method-figure">
+        <img src="./static/images/dynacontalk/fig1-architecture.webp" width="2416" height="983" loading="eager" decoding="async" fetchpriority="high" alt="Figure 1 architecture of DynaConTalk, showing multimodal inputs and stationary wavelet motion space, separate face and body diffusion streams, DynaCon conditioning, band-specific heads, inverse SWT, root trajectory, and holistic co-speech motion output.">
+      </figure>
+
+      <div class="method-flow" aria-label="DynaConTalk method flow">
+        <article class="flow-node accent-cyan"><span>Representation</span><strong>Raw 6D → aligned SWT frequency bands</strong></article>
+        <i class="flow-arrow" aria-hidden="true"></i>
+        <article class="flow-node accent-gold"><span>Conditioning</span><strong>Independent gates → proposal and consensus</strong></article>
+        <i class="flow-arrow" aria-hidden="true"></i>
+        <article class="flow-node accent-rose"><span>Constraints</span><strong>Re-noised history and edits → clean motion</strong></article>
+      </div>
+    </section>
+
+    <section id="wavelet" class="section feature-chapter feature-wavelet">
+      <header class="feature-header" data-reveal>
+        <p class="feature-eyebrow">Representation</p>
+        <h2 class="feature-display">Stationary Wavelet Motion Space</h2>
+      </header>
+      <div class="feature-layout media-left">
+        <div class="feature-media" data-reveal data-youtube-id="DRTdIulGLeU">
+          <button class="video-launch" type="button" aria-label="Play the wavelet motion spectroscope video">
+            <img src="./static/images/dynacontalk/feature-wavelet-poster.jpg" loading="eager" decoding="async" alt="">
+            <span class="play-control" aria-hidden="true"><span class="play-triangle"></span></span>
+            <span class="video-caption">Wavelet motion spectroscope</span>
+            <span class="video-loading" role="status" aria-live="polite">Loading video…</span>
+          </button>
+        </div>
+        <div class="feature-copy" data-reveal>
+          <p class="feature-lede">Frequency-aligned motion decomposition.</p>
+          <p>SWT separates coarse posture, gesture strokes, and fast expressive detail without changing sequence length. Per-band normalization gives low-amplitude dynamics their own learning scale, while inverse SWT brings every band back into coherent motion.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="dgn" class="section feature-chapter feature-dgn">
+      <header class="feature-header" data-reveal>
+        <p class="feature-eyebrow">Conditioning</p>
+        <h2 class="feature-display">Dynamic Gating &amp; Consensus</h2>
+      </header>
+      <div class="feature-layout media-right">
+        <div class="feature-copy" data-reveal>
+          <p class="feature-lede">Frame-wise multimodal condition negotiation.</p>
+          <p>DGN balances rhythm, acoustic, semantic, text, identity, and activity cues frame by frame. A proposal path introduces the useful signal; consensus corrects or reinforces it against the current motion state.</p>
+        </div>
+        <div class="feature-media" data-reveal data-youtube-id="2fEvAtAFWGU">
+          <button class="video-launch" type="button" aria-label="Play the dynamic condition negotiation video">
+            <img src="./static/images/dynacontalk/feature-dgn-poster.jpg" loading="eager" decoding="async" alt="">
+            <span class="play-control" aria-hidden="true"><span class="play-triangle"></span></span>
+            <span class="video-caption">Live condition negotiation</span>
+            <span class="video-loading" role="status" aria-live="polite">Loading video…</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="controls" class="section feature-chapter feature-editing">
+      <header class="feature-header" data-reveal>
+        <p class="feature-eyebrow">Controllable Generation</p>
+        <h2 class="feature-display">Matched-Noise Constraint Injection</h2>
+      </header>
+      <div class="feature-layout media-left">
+        <div class="feature-media" data-reveal data-youtube-id="Xl_uPvtJo_0">
+          <button class="video-launch" type="button" aria-label="Play the interactive motion editing video">
+            <img src="./static/images/dynacontalk/feature-editing-poster.jpg" loading="eager" decoding="async" alt="">
+            <span class="play-control" aria-hidden="true"><span class="play-triangle"></span></span>
+            <span class="video-caption">Interactive motion editing</span>
+            <span class="video-loading" role="status" aria-live="polite">Loading video…</span>
+          </button>
+        </div>
+        <div class="feature-copy" data-reveal>
+          <p class="feature-lede">Diffusion-compatible history and editing constraints.</p>
+          <p>Matched-noise injection re-noises history or sparse edits to the current diffusion step before insertion. Time, body-part, and wavelet-band masks localize control while the denoiser preserves the surrounding motion.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper-section">
+      <div class="paper-card">
+        <div><p class="section-kicker">DynaConTalk</p><h2>Paper and code</h2></div>
+        <p>Paper and code links will be added after the arXiv release.</p>
+        <div class="actions"><span class="button disabled" aria-disabled="true">Paper · Coming soon</span><span class="button disabled" aria-disabled="true">Code · Coming soon</span><a class="button" href="#top">Back to Top</a></div>
+      </div>
+    </section>
+
+    <section id="examples" class="section generated-examples-section">
+      <div class="section-heading">
+        <h2>Generated Examples</h2>
+      </div>
+      <div class="youtube-frame" data-reveal>
+        <iframe src="https://www.youtube.com/embed/PUwR3NZxi3s?rel=0" title="DynaConTalk generated examples" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>DynaConTalk · Project Page</p>
+    <p class="template-credit">Visual direction inspired by <a href="https://sun-happy-ykx.github.io/MACE-Dance/" target="_blank" rel="noopener">MACE-Dance</a>. Initial structure adapted from <a href="https://ericguo5513.github.io/momask/" target="_blank" rel="noopener">MoMask</a>.</p>
+  </footer>
+
+  <script src="./static/js/index.js?v=youtube-features-v1"></script>
+</body>
+</html>
