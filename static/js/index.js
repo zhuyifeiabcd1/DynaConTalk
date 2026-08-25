@@ -86,5 +86,82 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const heroVideo = document.querySelector("#hero-background");
-  if (heroVideo) heroVideo.play().catch(() => {});
+  const heroPlayFallback = document.querySelector("#hero-play-fallback");
+
+  if (heroVideo) {
+    let fallbackTimer;
+
+    // iOS Safari evaluates autoplay from the live media properties as well as
+    // the HTML attributes. Set both before every playback attempt.
+    const prepareHeroVideo = () => {
+      heroVideo.defaultMuted = true;
+      heroVideo.muted = true;
+      heroVideo.playsInline = true;
+      heroVideo.setAttribute("muted", "");
+      heroVideo.setAttribute("playsinline", "");
+      heroVideo.setAttribute("webkit-playsinline", "");
+    };
+
+    const hideHeroFallback = () => {
+      window.clearTimeout(fallbackTimer);
+      if (heroPlayFallback) heroPlayFallback.hidden = true;
+    };
+
+    const scheduleHeroFallback = () => {
+      window.clearTimeout(fallbackTimer);
+      fallbackTimer = window.setTimeout(() => {
+        if (heroPlayFallback && heroVideo.paused && !document.hidden) {
+          heroPlayFallback.hidden = false;
+        }
+      }, 900);
+    };
+
+    const playHeroVideo = () => {
+      prepareHeroVideo();
+      if (document.hidden || !heroVideo.paused) {
+        if (!heroVideo.paused) hideHeroFallback();
+        return;
+      }
+
+      let playAttempt;
+      try {
+        // Keep play() synchronous with click/touchend so Safari recognizes the
+        // user's first interaction when automatic playback was initially denied.
+        playAttempt = heroVideo.play();
+      } catch (error) {
+        scheduleHeroFallback();
+        return;
+      }
+
+      if (playAttempt && typeof playAttempt.then === "function") {
+        playAttempt.then(hideHeroFallback).catch(scheduleHeroFallback);
+      }
+    };
+
+    prepareHeroVideo();
+    heroVideo.addEventListener("loadedmetadata", playHeroVideo);
+    heroVideo.addEventListener("loadeddata", playHeroVideo);
+    heroVideo.addEventListener("canplay", playHeroVideo);
+    heroVideo.addEventListener("playing", hideHeroFallback);
+    heroVideo.addEventListener("error", scheduleHeroFallback);
+    window.addEventListener("pageshow", playHeroVideo);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) playHeroVideo();
+    });
+
+    // WebKit only treats a direct event-handler call as a user gesture.
+    document.addEventListener("touchend", playHeroVideo, { passive: true });
+    document.addEventListener("click", playHeroVideo);
+    document.addEventListener("keydown", playHeroVideo);
+    heroPlayFallback?.addEventListener("click", playHeroVideo);
+
+    if ("IntersectionObserver" in window) {
+      const heroObserver = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) playHeroVideo();
+      }, { threshold: 0.05 });
+      heroObserver.observe(heroVideo);
+    }
+
+    playHeroVideo();
+  }
 });

@@ -16,16 +16,20 @@
   <link rel="canonical" href="https://zhuyifeiabcd1.github.io/DynaConTalk/">
   <link rel="preload" as="image" href="./static/images/dynacontalk/hero-background-poster-v4.jpg">
   <link rel="preload" as="image" href="./static/images/dynacontalk/fig1-architecture.webp" type="image/webp" fetchpriority="high">
-  <link rel="stylesheet" href="./static/css/index.css?v=examples-v1">
+  <link rel="stylesheet" href="./static/css/index.css?v=ios-hero-v1">
 </head>
 <body>
   <header class="paper-hero" id="top">
     <div class="hero-media" aria-hidden="true">
-      <video id="hero-background" autoplay muted loop playsinline preload="auto" poster="./static/images/dynacontalk/hero-background-poster-v4.jpg">
+      <video id="hero-background" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="./static/images/dynacontalk/hero-background-poster-v4.jpg">
         <source src="./static/video/dynacontalk/hero-background-v4.mp4" type="video/mp4">
       </video>
     </div>
     <div class="hero-overlay" aria-hidden="true"></div>
+    <button id="hero-play-fallback" class="hero-play-fallback" type="button" aria-controls="hero-background" hidden>
+      <span class="hero-play-icon" aria-hidden="true"></span>
+      <span>Play background</span>
+    </button>
 
     <div class="hero-foreground">
       <nav class="topbar" aria-label="Primary navigation">
@@ -175,6 +179,6 @@
     <p class="template-credit">Visual direction inspired by <a href="https://sun-happy-ykx.github.io/MACE-Dance/" target="_blank" rel="noopener">MACE-Dance</a>. Initial structure adapted from <a href="https://ericguo5513.github.io/momask/" target="_blank" rel="noopener">MoMask</a>.</p>
   </footer>
 
-  <script src="./static/js/index.js?v=youtube-features-v1"></script>
+  <script src="./static/js/index.js?v=ios-hero-v1"></script>
 </body>
 </html>

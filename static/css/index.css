@@ -28,6 +28,11 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 .hero-overlay { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(circle at 50% 48%, rgba(61, 142, 176, 0.05), transparent 42%), linear-gradient(180deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.22) 28%, rgba(0,0,0,.38) 56%, rgba(3,4,5,.86) 83%, #030405 100%); }
 .hero-overlay::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.4), transparent 22%, transparent 78%, rgba(0,0,0,.4)); }
 .hero-foreground { position: relative; z-index: 10; flex: 1; min-height: calc(100vh - 98px); display: flex; flex-direction: column; transform: translate3d(0, 0, 1px); backface-visibility: hidden; }
+.hero-play-fallback { position: absolute; right: clamp(18px, 3vw, 42px); bottom: clamp(18px, 3vw, 34px); z-index: 12; display: inline-flex; min-height: 42px; padding: 0 15px; align-items: center; gap: 9px; border: 1px solid rgba(255,255,255,.28); border-radius: 999px; background: rgba(7,10,13,.78); color: #f7fbff; font: inherit; font-size: 13px; font-weight: 750; letter-spacing: .01em; box-shadow: 0 12px 34px rgba(0,0,0,.34); backdrop-filter: blur(14px) saturate(145%); cursor: pointer; }
+.hero-play-fallback[hidden] { display: none; }
+.hero-play-fallback:active { transform: scale(.96); }
+.hero-play-fallback:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+.hero-play-icon { width: 0; height: 0; margin-left: 2px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid currentColor; }
 
 .topbar { position: relative; z-index: 4; width: 100%; max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { font-size: 14px; font-weight: 850; letter-spacing: -.02em; }
@@ -167,6 +172,7 @@ footer a { color: #b9c9d7; }
   .js [data-reveal] { opacity: 1; transform: none; transition: opacity .15s ease; }
   .video-launch img, .play-control, .feature-video { transition: none; }
   .video-launch:hover img { transform: none; }
+  .hero-play-fallback:active { transform: none; }
 }
 @media (prefers-reduced-transparency: reduce) {
   .play-control { background: rgba(8,10,13,.94); backdrop-filter: none; }
