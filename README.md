@@ -217,6 +217,33 @@ features noticeably) and stored as float16. Sequences are written in the order o
 `data/beat2_sequence_order.json`, which is the order the released models were
 trained with; the loader indexes training windows in that order.
 
+## Root-translation BiGRU (Studio)
+
+The body models output joint rotations; the Studio places the generated motion in the scene
+with a small BiGRU that predicts the root translation from the body pose
+(`src/models/trajectory_bigru.py`). Its input features are the pelvis-centred joint positions
+rotated by the root orientation, their velocities and the root yaw rate. It is trained on
+its own, on the official BEAT2 train split with the validation split for validation, and its
+data are built directly from raw BEAT2 (SMPL-X is needed for the joint positions):
+
+```bash
+export DYNACONTALK_TRAJECTORY_DIR=/path/to/trajectory_data
+python src/tools/preprocess_trajectory.py --beat2_root /path/to/BEAT2/beat_english_v2.0.0 \
+    --out_dir $DYNACONTALK_TRAJECTORY_DIR      # trajectory_train.npy, trajectory_val.npy
+bash scripts/train_trajectory.sh
+```
+
+The recipe is in `configs/trajectory_bigru.yaml`: whole sequences, batch 64 on one GPU,
+AdamW (lr 1e-3, weight decay 1e-4), bf16-mixed, cosine decay over 300 epochs; the three
+checkpoints with the lowest `val/loss` and the last one are kept. To use a trained model in
+the Studio, export it to the file the Studio loads:
+
+```bash
+python src/tools/export_trajectory.py \
+    --checkpoint logs/trajectory_bigru/runs/<time>/checkpoints/last.ckpt \
+    --out checkpoints/trajectory_bigru/model.ckpt
+```
+
 ## Evaluation
 
 Two evaluation protocols are provided. Both generate every BEAT2 test sequence end to end
@@ -425,8 +452,9 @@ never downloads it. Get it yourself:
    ```
 
 It is needed for the validation FGD during training (the AESKConv evaluator reads the
-skeleton from it), for the face evaluation (face vertices) and by the Studio (joint positions
-for the root translation, preview rendering). Without it, these stop with an error that
+skeleton from it), for the evaluations (joint positions, face vertices), for the
+root-translation training data (joint positions) and by the Studio (joint positions for the
+root translation, preview rendering). Without it, these stop with an error that
 points here.
 
 ### EMAGE evaluator
@@ -444,6 +472,7 @@ configs/
   dynacontalk_edit.yaml     editable recipe
   dynacontalk_speech.yaml   speech-only recipe
   dynacontalk_face.yaml     face model (speech-only recipe)
+  trajectory_bigru.yaml     root-translation BiGRU of the Studio
   dgn/v1.yaml, dgn/v2.yaml  conditioning network switch
   hydra/default.yaml
 data/
@@ -457,22 +486,26 @@ webui/
   generate.py, edit.py, transcribe.py   job processes (generation, editing, word timings)
   pipeline.py               model loading, window conditions, job files
   keypose.py, traj_script.py, rotations.py   keypose blending, root-move primitives
-  trajectory.py             root-translation BiGRU
+  trajectory.py             root translation from the generated pose (BiGRU inference)
   render.py                 preview video (SMPL-X + pyrender)
   agent.py                  LLM edit assistant
 src/
   train.py                  entry point
   tools/preprocess_beat2.py builds the training data from raw BEAT2
+  tools/preprocess_trajectory.py  builds the root-translation data from raw BEAT2
+  tools/export_trajectory.py      exports a trained root-translation BiGRU for the Studio
   tools/eval_body.py        body evaluation, EMAGE protocol (FGD / BC / Diversity)
   tools/eval_face.py        face evaluation, EMAGE protocol (MSE / LVD)
   tools/eval_rag_gesture.py body evaluation, RAG-Gesture protocol (FGD / BeatAlign / L1Div / Diversity)
   tools/eval_common.py      shared model loading and conditioning
   data/beat_smplx_dataset.py  BEAT2 training / validation windows
+  data/trajectory_dataset.py  trajectory features and sequences of the root-translation BiGRU
   data/speech_features.py   speech features (rhythm, mel, HuBERT, CLIP text)
   models/light_final.py     diffusion training, validation and window-by-window sampling
   models/nets/light_final.py        denoiser
   models/nets/audio_conditioning.py speech conditioning network (DGN v1 / v2)
   models/wavelet.py         stationary wavelet transform of motion and its inverse
+  models/trajectory_bigru.py  root-translation BiGRU and its training
   models/emage_evaltools/   EMAGE evaluation tools (FGD, BC, Diversity, face MSE / LVD)
   utils/                    Hydra / Lightning helpers
 ```

@@ -1,0 +1,104 @@
+# Root-translation BiGRU used by the Studio (body pose -> root translation).
+#
+# Trains on the official BEAT2 train split and validates on the validation split, both built
+# by src/tools/preprocess_trajectory.py into $DYNACONTALK_TRAJECTORY_DIR:
+#   whole sequences, batch 64 on 1 GPU, AdamW lr 1e-3, wd 1e-4, bf16-mixed, grad clip 1.0,
+#   cosine LR over 300 epochs (eta_min 5e-6), input noise 0.003, seed 42.
+# The feature settings (input_joint_indices ... include_root_yaw_rate) must match the
+# preprocessing; they are stored with the weights for the Studio.
+
+defaults:
+- _self_
+- hydra: default
+
+data:
+  _target_: src.data.trajectory_dataset.TrajectoryDataModule
+  data_dir: ${oc.env:DYNACONTALK_TRAJECTORY_DIR}
+  train_file: trajectory_train.npy
+  val_file: trajectory_val.npy
+  batch_size: 64
+  num_workers: 4
+  pin_memory: true
+
+model:
+  _target_: src.models.trajectory_bigru.TrajectoryModule
+  pose_dim: 91
+  hidden_size: 384
+  num_layers: 3
+  dropout: 0.12
+  patch_size: 16
+  cnn_dropout: 0.05
+  output_dim: 3
+  input_joint_indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17]
+  pose_fps: 30
+  center_pelvis: true
+  use_root_orient: true
+  include_joint_velocity: true
+  include_root_yaw_rate: true
+  lr: 0.001
+  weight_decay: 0.0001
+  lr_scheduler:
+    _target_: src.models.utils.lr_scheduler.CosineWarmupScheduler
+    _partial_: true
+    T_max: ${trainer.max_epochs}
+    warmup: 0
+    eta_min: 5.0e-06
+  noise_std: 0.003
+  loss_pos_weight: 1.0
+  loss_vel_weight: 0.5
+  loss_acc_weight: 0.2
+  loss_end_weight: 0.3
+
+callbacks:
+  model_checkpoint:
+    _target_: lightning.pytorch.callbacks.ModelCheckpoint
+    dirpath: ${paths.output_dir}/checkpoints
+    filename: traj-{epoch:03d}
+    monitor: val/loss
+    mode: min
+    save_top_k: 3
+    save_last: true
+    every_n_epochs: 1
+  model_summary:
+    _target_: lightning.pytorch.callbacks.RichModelSummary
+    max_depth: 2
+  lr_monitor:
+    _target_: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+logger:
+  csv:
+    _target_: lightning.pytorch.loggers.csv_logs.CSVLogger
+    save_dir: ${paths.output_dir}
+    name: csv/
+    prefix: ''
+
+trainer:
+  _target_: lightning.pytorch.trainer.Trainer
+  default_root_dir: ${paths.output_dir}
+  min_epochs: 1
+  max_epochs: 300
+  accelerator: gpu
+  devices: 1
+  check_val_every_n_epoch: 1
+  deterministic: false
+  precision: bf16-mixed
+  gradient_clip_val: 1.0
+  accumulate_grad_batches: 1
+  strategy: auto
+
+paths:
+  root_dir: ${oc.env:PROJECT_ROOT}
+  log_dir: ${paths.root_dir}/logs/
+  output_dir: ${hydra:runtime.output_dir}
+
+extras:
+  ignore_warnings: false
+  enforce_tags: true
+  print_config: false
+
+task_name: trajectory_bigru
+tags: [dynacontalk, trajectory]
+seed: 42
+ckpt_path: null
+expected_effective_batch: 64

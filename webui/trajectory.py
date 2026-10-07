@@ -3,60 +3,18 @@
 The body models are conditioned on a root trajectory but output only joint rotations; the
 rendered root translation is predicted from the generated pose by this small network
 (pelvis-relative joint positions, their velocities and the root yaw rate -> per-frame
-translation relative to the first frame).
+translation relative to the first frame). Network: src/models/trajectory_bigru.py.
 """
 from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from src.models.emage_evaltools.rotation_conversions import axis_angle_to_matrix
+from src.models.trajectory_bigru import TrajectoryBiGRU
 
 POSE_DIM = 165
 TRANS_DIM = 3
-
-
-class TrajectoryBiGRU(nn.Module):
-    """Frame features -> patch tokens (conv) -> BiGRU -> frame-level translation (transposed conv)."""
-
-    def __init__(self, pose_dim, hidden_size=256, num_layers=2, dropout=0.1, patch_size=16, cnn_dropout=0.05,
-                 output_dim=3):
-        super().__init__()
-        self.patch_size = int(patch_size)
-        self.patch_embed = nn.Sequential(
-            nn.Conv1d(pose_dim, hidden_size, kernel_size=3, padding=1),
-            nn.SiLU(),
-            nn.Dropout(cnn_dropout),
-            nn.Conv1d(hidden_size, hidden_size, kernel_size=self.patch_size, stride=self.patch_size),
-            nn.SiLU(),
-        )
-        self.encoder = nn.GRU(input_size=hidden_size, hidden_size=hidden_size, num_layers=num_layers,
-                              dropout=dropout if num_layers > 1 else 0.0, bidirectional=True, batch_first=True)
-        dec_hidden = max(64, hidden_size // 2)
-        self.decoder = nn.Sequential(
-            nn.ConvTranspose1d(hidden_size * 2, hidden_size, kernel_size=self.patch_size, stride=self.patch_size),
-            nn.SiLU(),
-            nn.Conv1d(hidden_size, dec_hidden, kernel_size=3, padding=1),
-            nn.SiLU(),
-            nn.Conv1d(dec_hidden, output_dim, kernel_size=1),
-        )
-
-    def forward(self, input_feat: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
-        """[B, T, F] features, [B] lengths -> [B, T, 3] translation relative to the first frame."""
-        frame_len = input_feat.shape[1]
-        pad_len = (self.patch_size - frame_len % self.patch_size) % self.patch_size
-        if pad_len > 0:
-            input_feat = F.pad(input_feat, (0, 0, 0, pad_len))
-        patch_tokens = self.patch_embed(input_feat.transpose(1, 2)).transpose(1, 2)
-        patch_lengths = ((lengths + self.patch_size - 1) // self.patch_size).clamp(min=1, max=patch_tokens.shape[1])
-        packed = pack_padded_sequence(patch_tokens, lengths=patch_lengths.detach().cpu(), batch_first=True,
-                                      enforce_sorted=False)
-        packed_out, _ = self.encoder(packed)
-        encoded, _ = pad_packed_sequence(packed_out, batch_first=True, total_length=patch_tokens.shape[1])
-        return self.decoder(encoded.transpose(1, 2)).transpose(1, 2)[:, :frame_len, :]
 
 
 def _time_derivative(values: torch.Tensor, dt: float) -> torch.Tensor:

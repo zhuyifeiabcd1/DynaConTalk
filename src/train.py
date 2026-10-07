@@ -1,4 +1,4 @@
-"""Train a DynaConTalk model: python src/train.py -cn dynacontalk_{edit,speech,face} [overrides]."""
+"""Train a DynaConTalk model: python src/train.py -cn {dynacontalk_edit,dynacontalk_speech,dynacontalk_face,trajectory_bigru} [overrides]."""
 from typing import List, Optional
 
 import hydra
