@@ -28,7 +28,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / ".runtime"
-HF_REPO = "<hf-repo>"  # Hugging Face model repository holding checkpoints/ and assets/
+HF_REPO = "HAJIMIMANBO1/DynaConTalk"  # Hugging Face model repository holding checkpoints/ and assets/
 SMPLX_FILE = ROOT / "src" / "models" / "emage_evaltools" / "smplx_models" / "smplx" / "SMPLX_NEUTRAL_2020.npz"
 SMPLX_SITE = "https://smpl-x.is.tue.mpg.de"
 CLIP_SOURCE = "https://github.com/openai/CLIP/archive/dcba3cb2e2827b402d2701e7e1c7d9fed8a20ef1.zip"
