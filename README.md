@@ -219,14 +219,24 @@ trained with; the loader indexes training windows in that order.
 
 ## Evaluation
 
-The released models are evaluated on the BEAT2 test split with the metrics of
-[EMAGE](https://github.com/PantoMatrix/PantoMatrix), computed with the EMAGE evaluation
-tools in `src/models/emage_evaltools`. Every test sequence is generated end to end from
-speech with the sampler settings of the training config (64-frame windows, 8-frame overlap).
-The model is built from the training config of the checkpoint (`config.yaml` next to it, or
-`<run>/.hydra/config.yaml`) and its weights are loaded strictly.
+Two evaluation protocols are provided. Both generate every BEAT2 test sequence end to end
+from speech with the sampler settings of the training config (64-frame windows, 8-frame
+overlap) and build the model from the training config of the checkpoint (`config.yaml` next
+to it, or `<run>/.hydra/config.yaml`) with its weights loaded strictly; they differ in how the
+generated motion is scored. Choose the one that matches the results you compare with.
 
-### Body (speech-only model)
+| Protocol | Scripts | Metrics | Test data |
+|---|---|---|---|
+| [EMAGE](https://github.com/PantoMatrix/PantoMatrix) | `scripts/eval_body.sh`, `scripts/eval_face.sh` | body: FGD, BC, Diversity; face: MSE, LVD | whole test sequences |
+| [RAG-Gesture](https://github.com/m-hamza-mughal/RAG-Gesture) | `scripts/eval_rag_gesture.sh` | body: FGD, BeatAlign, L1Div, Diversity | 10 s chunks of the test sequences |
+
+Both use the EMAGE evaluation tools in `src/models/emage_evaltools`.
+
+### EMAGE protocol
+
+The metrics of EMAGE on whole test sequences.
+
+#### Body (speech-only model)
 
 | Metric | EMAGE tool | |
 |---|---|---|
@@ -246,7 +256,7 @@ frames are given. FGD is computed on 6D joint rotations; BC and Diversity on SMP
 positions (neutral body shape). BC reads the BEAT2 audio (`wave16k`) and leaves out the
 first and last 2 s of each sequence.
 
-### Face
+#### Face
 
 | Metric | EMAGE tool | |
 |---|---|---|
@@ -261,6 +271,36 @@ With the released checkpoint: `--checkpoint checkpoints/dynacontalk_face/model.c
 
 The first 8 frames are taken from the ground truth. Vertices are computed by SMPL-X from the
 ground-truth jaw pose and body shape with the predicted and ground-truth FLAME expressions.
+
+### RAG-Gesture protocol
+
+The protocol of RAG-Gesture (Mughal et al., CVPR 2025), which evaluates on all 25 BEAT2
+speakers with the test sequences cut into 10 s chunks. `src/tools/eval_rag_gesture.py`
+follows its evaluation script (`tools/evaluate.py`):
+
+| Metric | |
+|---|---|
+| FGD | Fréchet distance between AESKConv features of generated and ground-truth chunks (RAG-Gesture calls it FID) |
+| BeatAlign | EMAGE `BC` with a velocity threshold of 0.3, leaving out 10 frames at each end of a chunk |
+| L1Div | EMAGE `L1div` of joint positions within each chunk |
+| Diversity | mean pairwise distance between the joint positions of all chunks, divided by the chunk length (RAG-Gesture tables show it x1000) |
+
+```bash
+bash scripts/eval_rag_gesture.sh --checkpoint logs/<task>/runs/<time>/checkpoints/<name>.ckpt \
+    --beat2_root /path/to/BEAT2/beat_english_v2.0.0
+```
+
+With the released checkpoint: `--checkpoint checkpoints/dynacontalk_speech/model.ckpt`.
+As in the EMAGE protocol, only speech-only checkpoints are accepted and every test sequence
+is generated whole at 30 fps without ground-truth frames; the motion is then cut into
+non-overlapping 300-frame chunks from frame 0 (the number of chunks comes from the whole
+seconds of the shorter of audio and motion, a shorter tail is dropped). Joint positions come
+from SMPL-X with the neutral body shape and no translation, global orientation included. As
+in RAG-Gesture's pipeline, the ground truth is the BEAT2 motion subsampled to 15 fps and
+linearly interpolated back to 30 fps (in 6D); `--raw_gt` compares with the original 30 fps
+motion instead. BeatAlign, L1Div and Diversity are read against the ground truth (closer is
+better), so the script also prints the ground-truth values. It reads the BEAT2 motion and
+audio (`smplxflame_30`, `wave16k`).
 
 ## Studio: setup and details
 
@@ -423,8 +463,9 @@ webui/
 src/
   train.py                  entry point
   tools/preprocess_beat2.py builds the training data from raw BEAT2
-  tools/eval_body.py        body evaluation (EMAGE FGD / BC / Diversity)
-  tools/eval_face.py        face evaluation (EMAGE MSE / LVD)
+  tools/eval_body.py        body evaluation, EMAGE protocol (FGD / BC / Diversity)
+  tools/eval_face.py        face evaluation, EMAGE protocol (MSE / LVD)
+  tools/eval_rag_gesture.py body evaluation, RAG-Gesture protocol (FGD / BeatAlign / L1Div / Diversity)
   tools/eval_common.py      shared model loading and conditioning
   data/beat_smplx_dataset.py  BEAT2 training / validation windows
   data/speech_features.py   speech features (rhythm, mel, HuBERT, CLIP text)
@@ -442,8 +483,9 @@ The training framework was originally derived from
 [Light-T2M](https://github.com/qinghuannn/light-t2m) and
 [lightning-hydra-template](https://github.com/ashleve/lightning-hydra-template).
 The evaluation uses the EMAGE evaluation tools from
-[PantoMatrix](https://github.com/PantoMatrix/PantoMatrix), and the speech features
-follow [SemTalk](https://xiangyuezhang.com/SemTalk/). The Studio transcribes speech with
+[PantoMatrix](https://github.com/PantoMatrix/PantoMatrix) and follows the evaluation
+protocols of EMAGE and [RAG-Gesture](https://github.com/m-hamza-mughal/RAG-Gesture); the
+speech features follow [SemTalk](https://xiangyuezhang.com/SemTalk/). The Studio transcribes speech with
 [Qwen3-ASR](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) and
 [Qwen3-ForcedAligner](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B). We thank the
 authors for releasing their code and models.
