@@ -1,0 +1,13 @@
+# @package _global_
+# DGN v1: the original staged dynamic gating network. Select with `dgn=v1`.
+model:
+  lambda_gate_sparsity: 0.0
+  denoiser:
+    audio_conditioning_cfg:
+      fusion_mode: staged
+      use_depth_routing: false
+      condition_gate_use_state: false
+      condition_attention_pooling: false
+      frame_rhythm_bypass: false
+      timestep_gate: false
+      gate_bias_init: -3.0

@@ -1,0 +1,15 @@
+# @package _global_
+# DGN v2 (default): sparse residual gates over a semantic base, with modality-to-depth
+# routing, state-aware gates, attention pooling, a frame-level rhythm path and a
+# noise-level gate schedule. This is the conditioning used by the released models.
+model:
+  lambda_gate_sparsity: 0.001
+  denoiser:
+    audio_conditioning_cfg:
+      fusion_mode: dgn_v2
+      use_depth_routing: true
+      condition_gate_use_state: true
+      condition_attention_pooling: true
+      frame_rhythm_bypass: true
+      timestep_gate: true
+      gate_bias_init: -3.0
