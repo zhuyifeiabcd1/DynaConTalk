@@ -2,7 +2,7 @@
 
 **DynaConTalk: Wavelet-Constrained Diffusion for Long-Form and Controllable Holistic Co-Speech 3D Motion**
 
-[Project page](https://zhuyifeiabcd1.github.io/DynaConTalk/) · Paper (arXiv, coming soon) · Checkpoints (`<hf-repo>`)
+[Project page](https://zhuyifeiabcd1.github.io/DynaConTalk/) · Paper (arXiv, coming soon) · Checkpoints (Hugging Face, coming soon)
 
 <p align="center"><img src="media/studio/studio_overview.png" width="100%" alt="DynaConTalk Studio"></p>
 
@@ -86,8 +86,8 @@ Outputs (checkpoints, CSV logs, resolved config) go to
 
 ## Released checkpoints
 
-The weights and the Studio's asset libraries are on Hugging Face (`<hf-repo>`); download them
-into the repository root:
+The weights and the Studio's asset libraries will be on Hugging Face (link coming soon; `<hf-repo>`
+below is its name); download them into the repository root:
 
 ```bash
 huggingface-cli download <hf-repo> --local-dir .
