@@ -2,7 +2,7 @@
 
 **DynaConTalk: Wavelet-Constrained Diffusion for Long-Form and Controllable Holistic Co-Speech 3D Motion**
 
-[Project page](https://zhuyifeiabcd1.github.io/DynaConTalk/) · Paper (arXiv, coming soon) · [Checkpoints](https://huggingface.co/HAJIMIMANBO1/DynaConTalk)
+[Project page](https://zhuyifeiabcd1.github.io/DynaConTalk/) · [Paper (arXiv)](https://arxiv.org/abs/2610.09846) · [Checkpoints](https://huggingface.co/HAJIMIMANBO1/DynaConTalk)
 
 <p align="center"><img src="media/studio/studio_overview.png" width="100%" alt="DynaConTalk Studio"></p>
 
